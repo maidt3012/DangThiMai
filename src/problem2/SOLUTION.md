@@ -25,6 +25,8 @@ Below is the JSON message format for an order request:
   "price": 100
 }
 Cloud Services Used and Their Roles (no. 1, 2, 3, 4, 5, 6 below is marked in diagram)
+
+Cloud Services Used and Their Roles
 1. API Gateway 1
 Purpose: Acts as the entry point for handling buy/sell requests from clients and receiving order status updates via WebSockets.
 Reasons for Choosing AWS API Gateway:
@@ -47,7 +49,7 @@ Fully Managed, Auto-Scaling Queue
 Decouples Microservices without requiring a broker
 High Reliability & Scalability
 Alternatives Considered: AWS MQ (Lower Latency, <10ms).
-4. EKS 4 for Order Matching Engine
+4. EKS 4 for Order Matching
 Purpose: Matches buy and sell orders efficiently using Redis for fast processing.
 Reasons for Choosing AWS EKS:
 Handles high-throughput order processing efficiently
@@ -61,7 +63,7 @@ Low Latency & High Throughput
 Fan-Out Model for multiple consumers
 Serverless & Cost-Effective
 Alternatives Considered: AWS EventBridge.
-6. Lambda 6_1, 6_2, 6_3 for Post-Processing
+6. Lambda 6 for Post-Processing
 Purpose: Handles tasks such as:
 Adding unmatched orders back to the queue.
 Sending matched order status updates via API Gateway.
