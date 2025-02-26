@@ -1,14 +1,21 @@
-Provide your solution here:
-This is design for below feature similar to Binance trading platform:
-    1. Buy/Sell stock
-    2. Order status updates
-The design also need to align with the given requirements that ensure the system is resilient to failures, scalable, and cost-effective.
+# Trading Platform System Design (Similar to Binance)
 
-- An overview diagram of the services used and what role they play in the system.
-![alt text](https://github.com/maidt3012/DangThiMai/blob/main/src/problem2/problem2-Page-1.jpg)
-￼
+## Features
+This system is designed to support the following features:
+1. **Buy/Sell Stock**
+2. **Order Status Updates**
 
-Message format
+The architecture should be **resilient to failures**, **scalable**, and **cost-effective** while meeting the given requirements.
+
+---
+
+## System Overview
+### Architecture Diagram
+![System Diagram](https://github.com/maidt3012/DangThiMai/blob/main/src/problem2/problem2-Page-1.jpg)
+
+### Message Format
+Below is the JSON message format for an order request:
+```json
 {
   "orderId": "12345",
   "type": "SELL",
@@ -17,74 +24,55 @@ Message format
   "quantity": 5,
   "price": 100
 }
+Cloud Services Used and Their Roles (no. 1, 2, 3, 4, 5, 6 below is marked in diagram)
+1. API Gateway 1
+Purpose: Acts as the entry point for handling buy/sell requests from clients and receiving order status updates via WebSockets.
+Reasons for Choosing AWS API Gateway:
+Secure API Management: Authentication & Authorization, DDoS Protection, AWS WAF
+Traffic Management: Load Balancing, Caching, Rate Limiting
+Auto-Scaling to handle high request volumes
+Logging & Monitoring: AWS CloudWatch, AWS X-Ray
+Alternatives Considered: Kong API Gateway (EC2), Nginx with API Gateway on EC2.
+2. Lambda 2 for Request Classification
+Purpose: Classifies incoming requests into buy or sell queues and stores order connection details for status updates.
+Reasons for Choosing AWS Lambda:
+Serverless & Cost-Effective (Pay-Per-Use)
+Auto-Scalability to handle unpredictable loads
+No Infrastructure Management
+Alternatives Considered: AWS Fargate, ECS, EKS (for high-volume scenarios).
+3. SQS 3 for Order Queues
+Purpose: Stores buy and sell orders in separate queues for processing.
+Reasons for Choosing AWS SQS:
+Fully Managed, Auto-Scaling Queue
+Decouples Microservices without requiring a broker
+High Reliability & Scalability
+Alternatives Considered: AWS MQ (Lower Latency, <10ms).
+4. EKS 4 for Order Matching Engine
+Purpose: Matches buy and sell orders efficiently using Redis for fast processing.
+Reasons for Choosing AWS EKS:
+Handles high-throughput order processing efficiently
+Cost-Effective hourly pricing model for high workloads
+Scalability for future growth
+Alternatives Considered: AWS ECS.
+5. SNS 5 for Order Event Handling
+Purpose: Manages notifications for matched, unmatched, and invalid orders.
+Reasons for Choosing AWS SNS:
+Low Latency & High Throughput
+Fan-Out Model for multiple consumers
+Serverless & Cost-Effective
+Alternatives Considered: AWS EventBridge.
+6. Lambda 6_1, 6_2, 6_3 for Post-Processing
+Purpose: Handles tasks such as:
+Adding unmatched orders back to the queue.
+Sending matched order status updates via API Gateway.
+Reasons for Choosing AWS Lambda:
+Ideal for Simple, Event-Driven Tasks
+Serverless, Cost-Effective, and Auto-Scaling
+Alternatives Considered: Deploying a microservice on EKS.
+Scaling Strategies for Future Growth
+As the product scales, the system can be optimized:
 
-API gateway 1:
-entry point to handle request buy/sell from client and receive order status from the service and send it back to client via websocket
-
-lambda 2: classify incoming request to add them into buy queue or sell queue, save the connection with order id to database to send order update status when it complete processing.
-SQS queue 3: store all sell/buy order into 2 sqs queue : sell/buy
-EKS 4: together with redis installed help procesing order matching fast, this service will pickup the message from sell/buy queues to process. 
-if order matched, it will add message to Match topic in SNS 5, 
-if order is no match it will add message to No Match topic in SNS 5, 
-if order is expire or invalid.. it will add message to Other topic in SNS 5, 
-SNS 5: manage topic for order to send to subscribe to continue step to handle order.
-Lambda 6: subcribe to sns topic in SNS 5 to 
-add back to queues SELL/BUY the message of match, no match item.
-for the matched order, lambda 6_1 will send it status to API gateway with orderId and connection string and update to database
-
-
-- Elaboration on why each cloud service is used and what are the alternatives considered. 
-
-API gateway: is use for single entry point and single exit point.
-Reason to use API gateway: 
-- Secure API Management: Authentication & Authorization, DDoS Protection, AWS Shield & WAF help protect against attacks, Rate Limiting & Throttling, Prevents API abuse by limiting requests per user/IP
-- Traffic Management & Load Balancing: Handles Millions of Requests per Second, Efficiently routes traffic to backend services (Lambda, EC2, Fargate, etc.), Caching for Performance
-Built-in caching reduces API response times and backend load 
-- Logging, Monitoring & Analytics: AWS CloudWatch Logging & Metrics, Tracks API usage, error rates, and latencies, AWS X-Ray for Tracing, Provides end-to-end visibility into request flow
-- Cost-Effective & Scalable: Pay-Per-Use Pricing ,Only pay for API requests & data transfe,  Auto-Scales on Demand, Handles traffic spikes without manual scaling
-
-
-Alternative is Kong API gateway with ec2, Nginx with API gateway with ec2
-
-lambda 2: I used lambda to use benefit of serverless and cost per time of usage (because in case low throughput we don't need an persistent host.) But when the system become larger, we will change it to ecs or eks with load balancing.
-Reason to use:
-No Server Management (Fully Serverless)
-Auto-Scalability
-Cost-Effective (Pay-Per-Use)
-High Availability & Fault Tolerance
-
-Alternative : AWS Fargate, EKS, ECS with load balancing when high request volume
-
-
-SQS 3: 
-Reason to use SQS: 
-Ease of Use, fully managed, auto-scaling queue.
-a simple queue with no persistent connection.
-prioritize simplicity, reliability, and scalability over real-time processing.
-decouple microservices without managing a broker.
-latency : (10-100ms)
-pricing model: Pay-per-request
-
-Alternative is  AWS MQ (low Latency < 10ms>)
-
-
-EKS 4: 
-Reason to use EKS: The order matching process requires significant processing time, making an hourly pricing model a cost-effective choice for handling high-throughput messaging. Additionally, EKS provides a scalable, production-grade environment for Kubernetes workloads.
-Alternative is  ECS, 
-
-SNS 5: 
-Reason to use SNS: we need publish result of order soon to multiple parties at once. Low Latency & High Throughput, Cost-Effective & Serverless
-Alternative is  AWS EventBridge
-
-Lambda 6: handle simple task for adding to queue or update db or send to api gateway so we use lambda for easy and cheap.
-
-
-Plans for scaling when the product grows beyond your current setup.
-
-When product grow we can change
-all lambda to EKS,
-lambda 6_1, 6_2, 6_3 can deloy into 1 service deploy in eks.
-add load balancing for EKS
-
-
-
+Move from Lambda to EKS for long-running tasks.
+Consolidate multiple Lambda functions into a single microservice on EKS.
+Implement Load Balancing for EKS to distribute processing load.
+Optimize Redis Caching to speed up order matching.
