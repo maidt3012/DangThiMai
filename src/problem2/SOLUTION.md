@@ -24,9 +24,10 @@ Below is the JSON message format for an order request:
   "quantity": 5,
   "price": 100
 }
-Cloud Services Used and Their Roles (no. 1, 2, 3, 4, 5, 6 below is marked in diagram)
+```
 
-Cloud Services Used and Their Roles
+
+Cloud Services Used and Their Roles (no. 1, 2, 3, 4, 5, 6 below is marked in diagram)
 1. API Gateway 1
 Purpose: Acts as the entry point for handling buy/sell requests from clients and receiving order status updates via WebSockets.
 Reasons for Choosing AWS API Gateway:
