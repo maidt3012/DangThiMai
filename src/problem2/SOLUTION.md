@@ -72,9 +72,10 @@ Reasons for Choosing AWS Lambda:
 Ideal for Simple, Event-Driven Tasks
 Serverless, Cost-Effective, and Auto-Scaling
 Alternatives Considered: Deploying a microservice on EKS.
-Scaling Strategies for Future Growth
-As the product scales, the system can be optimized:
 
+Scaling Strategies for Future Growth
+
+As the product scales, the system can be optimized:
 Move from Lambda to EKS for long-running tasks.
 Consolidate multiple Lambda functions into a single microservice on EKS.
 Implement Load Balancing for EKS to distribute processing load.
