@@ -5,6 +5,8 @@ This is design for below feature similar to Binance trading platform:
 The design also need to align with the given requirements that ensure the system is resilient to failures, scalable, and cost-effective.
 
 - An overview diagram of the services used and what role they play in the system.
+![alt text](https://github.com/maidt3012/DangThiMai/blob/main/src/problem2/problem2-Page-1.jpg)
+￼
 
 Message format
 {
@@ -83,5 +85,6 @@ When product grow we can change
 all lambda to EKS,
 lambda 6_1, 6_2, 6_3 can deloy into 1 service deploy in eks.
 add load balancing for EKS
+
 
 
